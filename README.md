@@ -10,7 +10,7 @@ Esta é uma API de Conta Bancária simples para realizar operações como saque,
 ### Abaixo as informações de conexão do banco:
 
 * Host: localhost
-* Porta: 3306
+* Porta: 3308
 * Usuário: root
 * Senha: admin
 
@@ -18,7 +18,7 @@ Esta é uma API de Conta Bancária simples para realizar operações como saque,
 
 1. Abra o Visual Studio
 2. Abra o Terminal
-3. 
+3. Utilize o comando `update-Database`
 
 # Como Testar
 
