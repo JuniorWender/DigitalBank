@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using DigitalBank.Data.Context;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +9,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Configuration.AddJsonFile("appsettings.json");
+builder.Services.AddDbContext<DigitalBankContext>(opts => opts.UseLazyLoadingProxies().UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), new MySqlServerVersion(new Version(8, 0))));
 
 var app = builder.Build();
 

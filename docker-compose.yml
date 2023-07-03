@@ -1,0 +1,14 @@
+version: '3'
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: DigitalBank
+    ports:
+      - 3306:3306
+    volumes:
+      - dbdata:/var/lib/mysql
+volumes:
+    dbdata:

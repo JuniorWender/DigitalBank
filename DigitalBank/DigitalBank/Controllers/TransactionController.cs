@@ -1,69 +1,104 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DigitalBank.Data.Context;
+using DigitalBank.Data.Dtos;
+using DigitalBank.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace DigitalBank.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class TransactionController : ControllerBase
     {
 
-        // GET: api/<ValuesController>
-        [HttpGet]
-        public IActionResult Sacar(string accountNumber, int amount)
-        {
-            if (!String.IsNullOrEmpty(accountNumber))
-            {
-                // Verify database if the accountNumber exist
-                // if( accountNumber Exist) {
-                // puxo o valor em conta
-                // if (valor em conta > amount)
-                // {
-                //  accontAmount = accountAmount - amount;
-                //  return Ok("Transação bem sucedida, o seu saldo atual é amount);
-                // }
-                // else
-                // {
-                //  return BadRequest("O valor que deseja sacar é maior do que o valor em conta.");
-                // }
-                // 
-                // }
-            }
+        private readonly DigitalBankContext _context;
 
+        public TransactionController(DigitalBankContext context)
+        {
+            _context = context;
+        }
+
+        // POST: api/sacar
+        [HttpPost]
+        [Route("sacar")]
+        public IActionResult Sacar([FromBody] transacaoDto saqueRequisicao)
+        {
+            ContaBancaria conta = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == saqueRequisicao.NumeroDaConta);
+            if (conta != null)
+            {
+                if (conta.Saldo >= saqueRequisicao.Valor)
+                {
+                    conta.Saldo = conta.Saldo - saqueRequisicao.Valor;
+                    _context.ContasBancarias.Update(conta);
+                    _context.SaveChanges();
+                    return Ok($"Transação bem sucedida, o seu saldo atual é R${conta.Saldo}");
+                }
+                return BadRequest("O Valor Que Deseja Sacar É Maior Que O Saldo Em Conta.");
+            }
             return BadRequest("Entre Com Um Número de Conta Válido!");
         }
 
-        // GET: api/<ValuesController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<ValuesController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/<ValuesController>
+        //POST api/depositar
         [HttpPost]
-        public void Post([FromBody] string value)
+        [Route("depositar")]
+        public IActionResult Depositar([FromBody] transacaoDto depositoRequisicao)
         {
+            ContaBancaria conta = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == depositoRequisicao.NumeroDaConta);
+
+            if (conta != null)
+            {
+                if (depositoRequisicao.Valor > 0) 
+                {
+                    conta.Saldo += depositoRequisicao.Valor;
+                    _context.ContasBancarias.Update(conta);
+                    _context.SaveChanges();
+                    return Ok($"Deposito bem sucedida, o seu saldo atual é R${conta.Saldo}");
+                }
+                return BadRequest("Deposite Um Valor Válido!");
+            }
+            return BadRequest("Entre Com Um Número de Conta Válido!");
         }
 
-        // PUT api/<ValuesController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        // GET api/saldo
+        [HttpGet]
+        [Route("saldo")]
+        public IActionResult Saldo([FromHeader] int numeroDaConta)
         {
+            ContaBancaria conta = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == numeroDaConta);
+            if (conta != null)
+            {
+                return Ok($"Esta Conta Está Em Nome De {conta.Nome} e o seu saldo atual é: R${conta.Saldo}");
+            }
+            return BadRequest("Entre Com Um Número de Conta Válido!");
         }
 
-        // DELETE api/<ValuesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        //POST api/transferencia
+        [HttpPost]
+        [Route("transferir")]
+        public IActionResult Transferencia([FromBody] transferenciaDto transferenciaRequisicao)
         {
+            ContaBancaria contaOrigem = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == transferenciaRequisicao.NumeroDaContaOrigem);
+            ContaBancaria contaDestino = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == transferenciaRequisicao.NumeroDaContaDestino);
+
+            if (contaOrigem != null && contaDestino != null)
+            {
+                if (contaOrigem.Saldo >= transferenciaRequisicao.Valor)
+                {
+                    contaOrigem.Saldo -= transferenciaRequisicao.Valor;
+                    _context.ContasBancarias.Update(contaOrigem);
+
+                    contaDestino.Saldo += transferenciaRequisicao.Valor;
+                    _context.ContasBancarias.Update(contaDestino);
+
+                    _context.SaveChanges();
+                    return Ok($"Transação bem sucedida, o seu saldo atual é R${contaOrigem.Saldo}");
+                }
+                return BadRequest("O Valor Que Deseja Transferir É Maior Que O Saldo Em Conta.");
+            }
+            return BadRequest("Entre Com Um Número de Conta Válido!");
         }
+
     }
 }
