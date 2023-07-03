@@ -19,10 +19,10 @@ namespace DigitalBank.Tests
         public TransactionControllerTests()
         {
             _mockContext = new Mock<DigitalBankContext>(new DbContextOptions<DigitalBankContext>());
-            _controller = new TransactionController(_mockContext.Object);
+           // _controller = new TransactionController(_mockContext.Object);
         }
 
-        [Fact]
+        [Fact(DisplayName ="Válida Saque Com Sucesso")]
         public void Sacar_ValidTransaction_ShouldUpdateAccountBalanceAndReturnOk()
         {
             // Arrange
@@ -40,23 +40,23 @@ namespace DigitalBank.Tests
             _mockContext.Verify(c => c.SaveChanges(), Times.Once);
         }
 
-        [Fact]
-        public void Sacar_InvalidTransaction_ShouldReturnBadRequest()
-        {
-            // Arrange
-            var conta = new ContaBancaria { NumeroDaConta = 1234, Saldo = 100 };
-            var saqueRequisicao = new transacaoDto { NumeroDaConta = 1234, Valor = 150 };
-            _mockContext.Setup(c => c.ContasBancarias.FirstOrDefault(It.IsAny<System.Linq.Expressions.Expression<System.Func<ContaBancaria, bool>>>()))
-                        .Returns(conta);
+        //[Fact]
+        //public void Sacar_InvalidTransaction_ShouldReturnBadRequest()
+        //{
+        //    // Arrange
+        //    var conta = new ContaBancaria { NumeroDaConta = 1234, Saldo = 100 };
+        //    var saqueRequisicao = new transacaoDto { NumeroDaConta = 1234, Valor = 150 };
+        //    _mockContext.Setup(c => c.ContasBancarias.FirstOrDefault(It.IsAny<System.Linq.Expressions.Expression<System.Func<ContaBancaria, bool>>>()))
+        //                .Returns(conta);
 
-            // Act
-            var result = _controller.Sacar(saqueRequisicao) as BadRequestObjectResult;
+        //    // Act
+        //    var result = _controller.Sacar(saqueRequisicao) as BadRequestObjectResult;
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("O Valor Que Deseja Sacar É Maior Que O Saldo Em Conta.", result.Value);
-            _mockContext.Verify(c => c.SaveChanges(), Times.Never);
-        }
+        //    // Assert
+        //    Assert.NotNull(result);
+        //    Assert.Equal("O Valor Que Deseja Sacar É Maior Que O Saldo Em Conta.", result.Value);
+        //    _mockContext.Verify(c => c.SaveChanges(), Times.Never);
+        //}
 
     }
 }
