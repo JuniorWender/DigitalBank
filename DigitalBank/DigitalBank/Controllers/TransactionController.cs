@@ -1,5 +1,4 @@
-﻿using DigitalBank.Data.Context;
-using DigitalBank.Data.Dtos;
+﻿using DigitalBank.Data.Dtos;
 using DigitalBank.Data.Repository;
 using DigitalBank.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,9 +12,9 @@ namespace DigitalBank.Controllers
     public class TransactionController : ControllerBase
     {
 
-        private readonly ContaDigitalRepository _contaDigitalRepository;
+        private readonly IContaDigitalRepository _contaDigitalRepository;
 
-        public TransactionController(ContaDigitalRepository contaDigitalRepository)
+        public TransactionController(IContaDigitalRepository contaDigitalRepository)
         {
             _contaDigitalRepository = contaDigitalRepository;
         }
@@ -51,7 +50,7 @@ namespace DigitalBank.Controllers
 
             if (conta != null)
             {
-                if (depositoRequisicao.Valor > 0) 
+                if (depositoRequisicao.Valor > 0)
                 {
                     conta.Saldo += depositoRequisicao.Valor; // Faz adição do valor depositado na conta 
 
