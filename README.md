@@ -130,6 +130,10 @@ Realiza uma transferência entre contas bancárias.
 * Código: `400 Bad Request`
 * Corpo da resposta: Mensagem de erro
 
-# 
+# Rodar Testes de Integração
+
+1. Abra o projeto "DigitalBankTests"
+2. Clique com botão direito no mesmo e escolha a opção "Executar Testes"
+3. Verifique se os testes foram bem sucedidos.
 
 ## Feito por: Jorge W. Junior
