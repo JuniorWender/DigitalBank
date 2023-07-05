@@ -1,8 +1,7 @@
-﻿using DigitalBank.Data.Context;
-using DigitalBank.Data.Dtos;
+﻿using DigitalBank.Data.Dtos;
+using DigitalBank.Data.Repository;
 using DigitalBank.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -13,11 +12,11 @@ namespace DigitalBank.Controllers
     public class TransactionController : ControllerBase
     {
 
-        private readonly DigitalBankContext _context;
+        private readonly IContaDigitalRepository _contaDigitalRepository;
 
-        public TransactionController(DigitalBankContext context)
+        public TransactionController(IContaDigitalRepository contaDigitalRepository)
         {
-            _context = context;
+            _contaDigitalRepository = contaDigitalRepository;
         }
 
         // POST: api/sacar
@@ -25,14 +24,16 @@ namespace DigitalBank.Controllers
         [Route("sacar")]
         public IActionResult Sacar([FromBody] transacaoDto saqueRequisicao)
         {
-            ContaBancaria conta = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == saqueRequisicao.NumeroDaConta);
+            ContaBancaria conta = _contaDigitalRepository.ObterContaPorNumero(saqueRequisicao.NumeroDaConta); // Verifica no banco de dados se a conta existe e qual é
+
             if (conta != null)
             {
                 if (conta.Saldo >= saqueRequisicao.Valor)
                 {
-                    conta.Saldo = conta.Saldo - saqueRequisicao.Valor;
-                    _context.ContasBancarias.Update(conta);
-                    _context.SaveChanges();
+                    conta.Saldo = conta.Saldo - saqueRequisicao.Valor; // Faz a subtração do saldo na conta
+
+                    _contaDigitalRepository.AtualizarConta(conta); // Persiste a alteração no banco
+
                     return Ok($"Transação bem sucedida, o seu saldo atual é R${conta.Saldo}");
                 }
                 return BadRequest("O Valor Que Deseja Sacar É Maior Que O Saldo Em Conta.");
@@ -45,15 +46,16 @@ namespace DigitalBank.Controllers
         [Route("depositar")]
         public IActionResult Depositar([FromBody] transacaoDto depositoRequisicao)
         {
-            ContaBancaria conta = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == depositoRequisicao.NumeroDaConta);
+            ContaBancaria conta = _contaDigitalRepository.ObterContaPorNumero(depositoRequisicao.NumeroDaConta); // Verifica no banco de dados se a conta existe e qual é
 
             if (conta != null)
             {
-                if (depositoRequisicao.Valor > 0) 
+                if (depositoRequisicao.Valor > 0)
                 {
-                    conta.Saldo += depositoRequisicao.Valor;
-                    _context.ContasBancarias.Update(conta);
-                    _context.SaveChanges();
+                    conta.Saldo += depositoRequisicao.Valor; // Faz adição do valor depositado na conta 
+
+                    _contaDigitalRepository.AtualizarConta(conta); // Persiste a alteração no banco
+
                     return Ok($"Deposito bem sucedida, o seu saldo atual é R${conta.Saldo}");
                 }
                 return BadRequest("Deposite Um Valor Válido!");
@@ -66,7 +68,8 @@ namespace DigitalBank.Controllers
         [Route("saldo")]
         public IActionResult Saldo([FromHeader] int numeroDaConta)
         {
-            ContaBancaria conta = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == numeroDaConta);
+            ContaBancaria conta = _contaDigitalRepository.ObterContaPorNumero(numeroDaConta); // Verifica no banco de dados se a conta existe e qual é
+
             if (conta != null)
             {
                 return Ok($"Esta Conta Está Em Nome De {conta.Nome} e o seu saldo atual é: R${conta.Saldo}");
@@ -79,20 +82,19 @@ namespace DigitalBank.Controllers
         [Route("transferir")]
         public IActionResult Transferencia([FromBody] transferenciaDto transferenciaRequisicao)
         {
-            ContaBancaria contaOrigem = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == transferenciaRequisicao.NumeroDaContaOrigem);
-            ContaBancaria contaDestino = _context.ContasBancarias.FirstOrDefault(x => x.NumeroDaConta == transferenciaRequisicao.NumeroDaContaDestino);
+            ContaBancaria contaOrigem = _contaDigitalRepository.ObterContaPorNumero(transferenciaRequisicao.NumeroDaContaOrigem); // Verifica no banco de dados se a conta de origem existe e qual é
+            ContaBancaria contaDestino = _contaDigitalRepository.ObterContaPorNumero(transferenciaRequisicao.NumeroDaContaDestino); // Verifica no banco de dados se a conta de destino existe e qual é
 
             if (contaOrigem != null && contaDestino != null)
             {
                 if (contaOrigem.Saldo >= transferenciaRequisicao.Valor)
                 {
-                    contaOrigem.Saldo -= transferenciaRequisicao.Valor;
-                    _context.ContasBancarias.Update(contaOrigem);
+                    contaOrigem.Saldo = contaOrigem.Saldo - transferenciaRequisicao.Valor; // Faz a subtração do saldo na conta de origem pelo valor transferido
+                    contaDestino.Saldo += transferenciaRequisicao.Valor; // Faz a Adição do saldo na conta de Destino pelo valor transferido
 
-                    contaDestino.Saldo += transferenciaRequisicao.Valor;
-                    _context.ContasBancarias.Update(contaDestino);
+                    _contaDigitalRepository.AtualizarConta(contaOrigem); // Atualiza no banco o saldo da conta de origem
+                    _contaDigitalRepository.AtualizarConta(contaDestino); // Atualiza no banco o saldo da conta da conta Destino
 
-                    _context.SaveChanges();
                     return Ok($"Transação bem sucedida, o seu saldo atual é R${contaOrigem.Saldo}");
                 }
                 return BadRequest("O Valor Que Deseja Transferir É Maior Que O Saldo Em Conta.");

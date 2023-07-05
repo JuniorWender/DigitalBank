@@ -1,5 +1,6 @@
 ﻿using DigitalBank.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace DigitalBank.Data.Context
 {
@@ -22,6 +23,7 @@ namespace DigitalBank.Data.Context
 
             base.OnModelCreating(modelBuilder);
         }
+
     }
 
 }
