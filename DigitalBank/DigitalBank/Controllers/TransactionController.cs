@@ -30,7 +30,7 @@ namespace DigitalBank.Controllers
             {
                 if (conta.Saldo >= saqueRequisicao.Valor)
                 {
-                    conta.Saldo -= saqueRequisicao.Valor; // Faz a subtração do saldo na conta
+                    conta.Saldo = conta.Saldo - saqueRequisicao.Valor; // Faz a subtração do saldo na conta
 
                     _contaDigitalRepository.AtualizarConta(conta); // Persiste a alteração no banco
 
@@ -89,7 +89,7 @@ namespace DigitalBank.Controllers
             {
                 if (contaOrigem.Saldo >= transferenciaRequisicao.Valor)
                 {
-                    contaOrigem.Saldo -= transferenciaRequisicao.Valor; // Faz a subtração do saldo na conta de origem pelo valor transferido
+                    contaOrigem.Saldo = contaOrigem.Saldo - transferenciaRequisicao.Valor; // Faz a subtração do saldo na conta de origem pelo valor transferido
                     contaDestino.Saldo += transferenciaRequisicao.Valor; // Faz a Adição do saldo na conta de Destino pelo valor transferido
 
                     _contaDigitalRepository.AtualizarConta(contaOrigem); // Atualiza no banco o saldo da conta de origem
